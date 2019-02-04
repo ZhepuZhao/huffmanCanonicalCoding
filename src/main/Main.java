@@ -2,7 +2,9 @@ package main;
 
 import io.*;
 import java.io.*;
+import java.util.Map;
 
+import huffmanDecoder.Cell;
 import huffmanDecoder.HuffmanDecoder;
 import huffmanEncoder.HuffmanEncoder;
 
@@ -45,7 +47,25 @@ public class Main {
 		System.out.println("The last decoder costs: " + (lastDecoderEnds - 
 				lastDecoderStarts) / 1000 + " seconds");
 		
-		
+		/*
+		 * calculate original compressed file entropy
+		 */
+//		HuffmanDecoder decoder = new HuffmanDecoder(fileToDecode, decodedFile);
+//		decoder.decode();
+//		HuffmanEncoder encoder = new HuffmanEncoder(decodedFile, encodedFile);
+//		encoder.encode();
+//		Map<Integer, Double> frequencyMap = encoder.getFrequencyMap();
+//		Cell[] symbols = decoder.getSymbols();
+//		double entropy = 0.0;
+//		for (Map.Entry<Integer, Double> entry : frequencyMap.entrySet()) {
+//			if (entry.getValue() > 0) {
+//				
+//				entropy += entry.getValue() * symbols[entry.getKey()].getLength();
+//				System.out.println(entry.getValue() + " " + entry.getKey() + " " + 
+//						symbols[entry.getKey()].getLength() + " " + entropy);
+//			}
+//		}
+//		System.out.println("compressed entropy: " + entropy);
 
 	}
 

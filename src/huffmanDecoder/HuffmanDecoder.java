@@ -45,6 +45,7 @@ public class HuffmanDecoder {
 			int tmp = source.next(8);
 			symbols[i] = new Cell(tmp, i);
 		}
+		
 	}
 
 	public void sortSymbolArray() {

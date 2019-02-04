@@ -73,12 +73,6 @@ public class HuffmanEncoder {
 
 	// <symbol, frequency>
 	public void constructFrequencyMap() throws InsufficientBitsLeftException, IOException {
-//		// first 32 bits represent the number of symbols in the file
-//		this.symbolNum = source.next(32);
-		// retrieve the symbols from the input file
-//		for (int i = 0; i < this.symbolNum; i++) {
-//			
-//		}
 		while (input.available() > 0) {
 			int currentSymbol = source.next(8);
 			symbolNum++;
@@ -98,6 +92,15 @@ public class HuffmanEncoder {
 		for (Map.Entry<Integer, Double> entry : frequencyMap.entrySet()) {
 			entry.setValue((double) (entry.getValue() / this.symbolNum));
 		}
+//		// calculate the theoretical entropy here
+//		double entropy = 0.0;
+//		for (Map.Entry<Integer, Double> entry : frequencyMap.entrySet()) {
+//			if (entry.getValue() > 0) {
+//				entropy += entry.getValue() * Math.log(1 / entry.getValue());
+//			}
+//		}
+//		System.out.println("theoretical entropy: " + entropy);
+		
 		for (Map.Entry<Integer, Double> entry : frequencyMap.entrySet()) {
 			Node node = new Node(entry.getKey());
 			node.setFrequency(entry.getValue());
@@ -244,6 +247,14 @@ public class HuffmanEncoder {
 		setCodeString(root, true, "");
 		codeMap.clear();
 		constructCodewordSymbolMap(root);
+//		// calculate entropy based on my compressed solution
+//		double entropy = 0.0;
+//		for (Map.Entry<Integer, Double> entry : frequencyMap.entrySet()) {
+//			if (entry.getValue() > 0) {
+//				entropy += entry.getValue() * this.codeMap.get(entry.getKey()).length();
+//			}
+//		}
+//		System.out.println("mine entropy: " + entropy);
 		outputFile();
 	}
 
