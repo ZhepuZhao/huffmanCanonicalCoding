@@ -29,8 +29,6 @@ public class HuffmanDecoder {
 
 	public HuffmanDecoder(String decodingFile, String outputFile) throws FileNotFoundException {
 		this.symbols = new Cell[256];
-		// this.symbols = new Cell[83];
-//		this.root = null;
 		this.root = new Node(-1);
 		this.map = new HashMap<String, Integer>(); // key: Huffman code; value: symbol value
 		this.input = new FileInputStream(decodingFile);
@@ -40,7 +38,105 @@ public class HuffmanDecoder {
 		this.symbolNum = 0;
 	}
 
-	// getters below
+	// instance methods of decoder
+	public void constructSymbolArray() throws InsufficientBitsLeftException, IOException {
+		for (int i = 0; i < symbols.length; i++) {
+			// first parameter: length, second parameter: symbol
+			int tmp = source.next(8);
+			symbols[i] = new Cell(tmp, i);
+		}
+	}
+
+	public void sortSymbolArray() {
+		// sort symbols
+		Arrays.sort(symbols, new Comparator<Cell>() {
+			@Override
+			public int compare(Cell c1, Cell c2) {
+				return c1.getLength() - c2.getLength();
+			}
+		});
+	}
+
+	public void constructCanonicalTree() {
+		for (Cell cell : symbols) {
+			insertSymbol(this.root, cell, cell.getLength());
+		}
+	}
+
+	public Node insertSymbol(Node root, Cell cell, int length) {
+		if (length == 0) {
+			Node tmp = new Node(cell.getSymbol());
+			tmp.setLeftFull(true);
+			tmp.setRightFull(true);
+			return tmp;
+		}
+		if (root == null) root = new Node(-1);
+		if (!root.isLeftFull()) {
+			root.setLeft(insertSymbol(root.getLeft(), cell, length - 1));
+			root.setLeftFull(root.getLeft().isLeftFull() && root.getLeft().isRightFull());
+		} else {
+			root.setRight(insertSymbol(root.getRight(), cell, length - 1));
+			root.setRightFull(root.getRight().isLeftFull() && root.getRight().isRightFull());
+		}
+		return root;
+	}
+	public void setCodeString(Node root, boolean isLeft, String s) {
+		if (root == null) return;
+
+		if (isLeft) {
+			s = s + "0";
+			root.setCode(s);
+
+		} else {
+			s = s + "1";
+			root.setCode(s);
+		}
+
+		setCodeString(root.getLeft(), true, root.getCode());
+
+		setCodeString(root.getRight(), false, root.getCode());
+	}
+
+	public void constructCodewordSymbolMap(Node root) {
+		if (root == null)
+			return;
+		if (root.getValue() != -1) {
+			// first '0' is not part of codeword string
+			map.put(root.getCode().substring(1), root.getValue());
+			return;
+		}
+		constructCodewordSymbolMap(root.getLeft());
+		constructCodewordSymbolMap(root.getRight());
+	}
+
+	public void outputFile() throws InsufficientBitsLeftException, IOException {
+		// write out decoded symbols to the decoded file
+		boolean decoded = false;
+		for (int i = 0; i < symbolNum; i++) {
+			StringBuilder sb = new StringBuilder();
+			while (!decoded) {
+				sb.append(source.next(1));
+				if (map.containsKey(sb.toString())) {
+					decoded = true;
+					sink.write(map.get(sb.toString()), 8);
+				}
+			}
+			decoded = false;
+		}
+	}
+	
+	public void decode() throws InsufficientBitsLeftException, IOException {
+		constructSymbolArray();
+		sortSymbolArray();
+		symbolNum = source.next(32);
+		constructCanonicalTree();
+		setCodeString(root, true, "");
+		constructCodewordSymbolMap(this.root);
+		// symbolNum = source.next(32);
+		outputFile();
+	}
+	
+	// getters and setters below
 	public Cell[] getSymbols() {
 		return symbols;
 	}
@@ -80,156 +176,58 @@ public class HuffmanDecoder {
 	public int getSymbolNum() {
 		return symbolNum;
 	}
-
-	// instance methods of decoder
-	public void constructSymbols() throws InsufficientBitsLeftException, IOException {
-		for (int i = 0; i < symbols.length; i++) {
-			// first parameter: length, second parameter: symbol
-			int tmp = source.next(8);
-//			System.out.println(tmp);
-			symbols[i] = new Cell(tmp, i);
-		}
-	}
-
-	public void sortSymbols() {
-		// sort symbols
-		Arrays.sort(symbols, new Comparator<Cell>() {
-			@Override
-			public int compare(Cell c1, Cell c2) {
-				return c1.getLength() - c2.getLength();
-			}
-		});
-	}
-
-	public void decode() throws InsufficientBitsLeftException, IOException {
-		constructSymbols();
-		sortSymbols();
-		symbolNum = source.next(32);
-//		symbolNum = 574992;
-		System.out.println(symbolNum);
-		// constructSymbolHeap();
-//		root = constructTree(new Node(-1), getMaxLength(), true, "");
-//		root = constructTree(new Node(-1), getMaxLength(), "");
-		pruneTree();
-		setCodeString(root, true, "");
-		formCodewordSymbolMap(this.root);
-		// symbolNum = source.next(32);
-		outputFile();
-	}
-
-	public void pruneTree() {
-		for (Cell cell : symbols) {
-			pruneBranch(this.root, cell, cell.getLength());
-		}
-	}
-
-	public Node pruneBranch(Node root, Cell cell, int length) {
-		if (length == 0) {
-			Node tmp = new Node(cell.getSymbol());
-			tmp.setLeftFull(true);
-			tmp.setRightFull(true);
-			return tmp;
-		}
-		if (root == null) root = new Node(-1);
-		if (!root.isLeftFull()) {
-			root.setLeft(pruneBranch(root.getLeft(), cell, length - 1));
-			root.setLeftFull(root.getLeft().isLeftFull() && root.getLeft().isRightFull());
-		} else {
-			root.setRight(pruneBranch(root.getRight(), cell, length - 1));
-			root.setRightFull(root.getRight().isLeftFull() && root.getRight().isRightFull());
-		}
-		return root;
-	}
-	public void setCodeString(Node root, boolean isLeft, String s) {
-		if (root == null) return;
-
-		if (isLeft) {
-			s = s + "0";
-			root.setCode(s);
-
-		} else {
-			s = s + "1";
-			root.setCode(s);
-		}
-
-		setCodeString(root.getLeft(), true, root.getCode());
-
-		setCodeString(root.getRight(), false, root.getCode());
-	}
 	
+	/*
+	 * below is the old solution which construct the complete tree first
+	 * and prune the tree to get the final canonical tree.
+	 * But this solution could cause GC memory limit exceed problem
+	 * so construct canonical tree directly shown above is used by add 
+	 * another attribute to the Node(leftFull and rightFull)
+	 */
 //	public Node constructTree(Node root, int length, String s) {
-//		Queue<Node> queue = new LinkedList<Node>();		
-//		queue.offer(root);
-//		while (!queue.isEmpty()) {
-//			Node temp = queue.poll();
-//			if (temp.getHeight() + 1 <= length) {
-//				Node left = new Node(-1);
-//				left.setCode(temp.getCode() + "0");
-//				left.setHeight(temp.getHeight() + 1);
-//				Node right = new Node(-1);
-//				right.setCode(temp.getCode() + "1");
-//				right.setHeight(temp.getHeight() + 1);
-//				temp.setLeft(left);
-//				temp.setRight(right);
-//				queue.offer(left);
-//				queue.offer(right);
-//			} 
-//		}
-//		return root;
+//	Queue<Node> queue = new LinkedList<Node>();		
+//	queue.offer(root);
+//	while (!queue.isEmpty()) {
+//		Node temp = queue.poll();
+//		if (temp.getHeight() + 1 <= length) {
+//			Node left = new Node(-1);
+//			left.setCode(temp.getCode() + "0");
+//			left.setHeight(temp.getHeight() + 1);
+//			Node right = new Node(-1);
+//			right.setCode(temp.getCode() + "1");
+//			right.setHeight(temp.getHeight() + 1);
+//			temp.setLeft(left);
+//			temp.setRight(right);
+//			queue.offer(left);
+//			queue.offer(right);
+//		} 
 //	}
+//	return root;
+//}
 //
-//	public void pruneTree() {
-//		for (Cell cell : symbols) {
-//			pruneBranch(this.root, cell, cell.getLength());
-//		}
+//public void constructCanonicalTree() {
+//	for (Cell cell : symbols) {
+//		insertSymbol(this.root, cell, cell.getLength());
 //	}
+//}
 //
-//	public boolean pruneBranch(Node root, Cell cell, int length) {
-//		if (root == null || root.getValue() != -1)
-//			return false;
-//		if (length == 0) {
-//			if (root.getValue() == -1) {
-//				root.setValue(cell.getSymbol());
-//				return true;
-//			} else {
-//				return false;
-//			}
+//public boolean insertSymbol(Node root, Cell cell, int length) {
+//	if (root == null || root.getValue() != -1)
+//		return false;
+//	if (length == 0) {
+//		if (root.getValue() == -1) {
+//			root.setValue(cell.getSymbol());
+//			return true;
 //		} else {
-//			if (!pruneBranch(root.getLeft(), cell, length - 1)) {
-//				return pruneBranch(root.getRight(), cell, length - 1);
-//			} else {
-//				return true;
-//			}
+//			return false;
+//		}
+//	} else {
+//		if (!insertSymbol(root.getLeft(), cell, length - 1)) {
+//			return insertSymbol(root.getRight(), cell, length - 1);
+//		} else {
+//			return true;
 //		}
 //	}
-
-	public void formCodewordSymbolMap(Node root) {
-		if (root == null)
-			return;
-		if (root.getValue() != -1) {
-			map.put(root.getCode().substring(1), root.getValue());
-//			map.put(root.getCode(), root.getValue());
-			return;
-		}
-		formCodewordSymbolMap(root.getLeft());
-		formCodewordSymbolMap(root.getRight());
-	}
-
-	public void outputFile() throws InsufficientBitsLeftException, IOException {
-		boolean decoded = false;
-		for (int i = 0; i < symbolNum; i++) {
-			StringBuilder sb = new StringBuilder();
-			while (!decoded) {
-				
-				sb.append(source.next(1));
-				if (map.containsKey(sb.toString())) {
-					decoded = true;
-					System.out.println((char)map.get(sb.toString()).intValue());
-					sink.write(map.get(sb.toString()), 8);
-				}
-			}
-			decoded = false;
-		}
-	}
+//}
 
 }
