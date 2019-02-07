@@ -1,5 +1,7 @@
 package huffmanEncoder;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -38,9 +40,12 @@ public class HuffmanEncoder {
 	private Node root;
 
 	public HuffmanEncoder(String encodingFile, String outputFile) throws FileNotFoundException {
-		this.input = new FileInputStream(encodingFile);
+//		this.input = new FileInputStream(encodingFile);
+		// BufferedStream is much faster than FileStream
+		this.input = new BufferedInputStream(new FileInputStream(encodingFile));
 		this.source = new InputStreamBitSource(input);
-		this.output = new FileOutputStream(outputFile);
+//		this.output = new FileOutputStream(outputFile);
+		this.output = new BufferedOutputStream(new FileOutputStream(outputFile));
 		this.sink = new OutputStreamBitSink(output);
 		this.encodingFile = encodingFile;
 
@@ -220,8 +225,9 @@ public class HuffmanEncoder {
 		 * 1. close the previous inputStream
 		 * 2. open a new inputStream which takes the encodingFile
 		 */
+		
 		input.close();
-		source = new InputStreamBitSource(new FileInputStream(encodingFile));
+		source = new InputStreamBitSource(new BufferedInputStream(new FileInputStream(encodingFile)));
 		// write the encoded codeword of symbol to the outputStream
 		for (int i = 0; i < symbolNum; i++) {
 			int tmp = source.next(8);
@@ -231,6 +237,7 @@ public class HuffmanEncoder {
 			}
 		}
 		sink.padToWord();
+		output.close();
 	}
 
 	public void encode() throws InsufficientBitsLeftException, IOException {

@@ -1,5 +1,7 @@
 package huffmanDecoder;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -31,9 +33,12 @@ public class HuffmanDecoder {
 		this.symbols = new Cell[256];
 		this.root = new Node(-1);
 		this.map = new HashMap<String, Integer>(); // key: Huffman code; value: symbol value
-		this.input = new FileInputStream(decodingFile);
+//		this.input = new FileInputStream(decodingFile);
+		// use BufferedStream to speed up the whole process
+		this.input = new BufferedInputStream(new FileInputStream(decodingFile));
 		this.source = new InputStreamBitSource(input);
-		this.output = new FileOutputStream(outputFile);
+//		this.output = new FileOutputStream(outputFile);
+		this.output = new BufferedOutputStream(new FileOutputStream(outputFile));
 		this.sink = new OutputStreamBitSink(output);
 		this.symbolNum = 0;
 	}
@@ -135,6 +140,8 @@ public class HuffmanDecoder {
 		constructCodewordSymbolMap(this.root);
 		// symbolNum = source.next(32);
 		outputFile();
+		input.close();
+		output.close();
 	}
 	
 	// getters and setters below

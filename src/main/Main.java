@@ -32,20 +32,20 @@ public class Main {
 		// encoder
 		encoderStarts = System.currentTimeMillis();
 		System.out.println("The first decoder costs: " + (encoderStarts - 
-				 firstDecoderStarts) / 1000 + " seconds");
+				 firstDecoderStarts) + " milli seconds");
 		HuffmanEncoder encoder = new HuffmanEncoder(decodedFile, encodedFile);
 		encoder.encode();
 		
 		// last decoder
 		lastDecoderStarts = System.currentTimeMillis();
 		System.out.println("The encoder costs: " + (lastDecoderStarts - 
-				encoderStarts) / 1000 + " seconds");
+				encoderStarts) + " milli seconds");
 
 		HuffmanDecoder decoder2 = new HuffmanDecoder(encodedFile, decodedFileBasedOnEncoding);
 		decoder2.decode();
 		lastDecoderEnds = System.currentTimeMillis();
 		System.out.println("The last decoder costs: " + (lastDecoderEnds - 
-				lastDecoderStarts) / 1000 + " seconds");
+				lastDecoderStarts) + " milli seconds");
 		
 		/*
 		 * calculate original compressed file entropy
